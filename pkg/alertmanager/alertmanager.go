@@ -4,6 +4,7 @@
 package alertmanager
 
 import (
+	"fmt"
 	"sort"
 	"time"
 )
@@ -127,6 +128,7 @@ type Alerts []Alert
 func (as Alerts) Firing() []Alert {
 	res := []Alert{}
 	for _, a := range as {
+		fmt.Println(a.Status)
 		if a.Status == AlertFiring {
 			res = append(res, a)
 		}
