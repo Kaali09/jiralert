@@ -78,11 +78,23 @@ func main() {
 		}
 		level.Debug(logger).Log("msg", "  matched receiver", "receiver", conf.Name)
 
+		alertsResolved := data.Alerts.Resolved()
+		if len(alertsResolved) > 0 {
+			for _, data := range alertsResolved {
+				fmt.Println(data)
+			}
+		}
+
 		// Filter out resolved alerts, not interested in them.
 		alerts := data.Alerts.Firing()
 		if len(alerts) < len(data.Alerts) {
 			level.Warn(logger).Log("msg", "receiver should have \"send_resolved: false\" set in Alertmanager config", "receiver", conf.Name)
+			fmt.Println(data.Alerts)
 			data.Alerts = alerts
+		}
+
+		if len(alertsResolved) < len(data.Alerts) {
+			data.Alerts = alertsResolved
 		}
 
 		if len(data.Alerts) > 0 {

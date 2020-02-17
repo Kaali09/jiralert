@@ -4,7 +4,7 @@
 package alertmanager
 
 import (
-	"fmt"
+	//	"fmt"
 	"sort"
 	"time"
 )
@@ -14,7 +14,8 @@ const (
 	AlertNameLabel = "alertname"
 
 	// AlertFiring is the status value for a firing alert.
-	AlertFiring = "firing"
+	AlertFiring   = "firing"
+	AlertResolved = "resolved"
 )
 
 // Pair is a key/value string pair.
@@ -126,10 +127,18 @@ type Alerts []Alert
 
 // Firing returns the subset of alerts that are firing.
 func (as Alerts) Firing() []Alert {
+	return returnAlert(&as, AlertFiring)
+}
+
+// Resolved returns the subset of alerts that are firing.
+func (as Alerts) Resolved() []Alert {
+	return returnAlert(&as, AlertResolved)
+}
+
+func returnAlert(as *Alerts, alertType string) []Alert {
 	res := []Alert{}
-	for _, a := range as {
-		//		fmt.Println(a.Status)
-		if a.Status == AlertFiring {
+	for _, a := range *as {
+		if a.Status == alertType {
 			res = append(res, a)
 		}
 	}
