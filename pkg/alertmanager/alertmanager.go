@@ -13,7 +13,8 @@ const (
 	AlertNameLabel = "alertname"
 
 	// AlertFiring is the status value for a firing alert.
-	AlertFiring = "firing"
+	AlertFiring   = "firing"
+	AlertResolved = "resolved"
 )
 
 // Pair is a key/value string pair.
@@ -123,13 +124,21 @@ type Alert struct {
 // Alerts is a list of Alert objects.
 type Alerts []Alert
 
-// Firing returns the subset of alerts that are firing.
-func (as Alerts) Firing() []Alert {
+func returnAlert(as *Alerts, alertType string) []Alert {
 	res := []Alert{}
-	for _, a := range as {
-		if a.Status == AlertFiring {
+	for _, a := range *as {
+		if a.Status == alertType {
 			res = append(res, a)
 		}
 	}
 	return res
+}
+
+// Firing returns the subset of alerts that are firing.
+func (as Alerts) Firing() []Alert {
+	return returnAlert(&as, AlertFiring)
+}
+
+func (as Alerts) Resolved() []Alert {
+	return returnAlert(&as, AlertResolved)
 }
