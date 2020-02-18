@@ -41,6 +41,11 @@ func NewReceiver(c *config.ReceiverConfig, t *template.Template) (*Receiver, err
 
 // Notify implements the Notifier interface.
 func (r *Receiver) Notify(data *alertmanager.Data, logger log.Logger) (bool, error) {
+	operation := "create"
+	return JiraNotify(operation, r, data, logger)
+}
+
+func JiraNotify(operation string, r *Receiver, data *alertmanager.Data, logger log.Logger) (bool, error) {
 	project := r.tmpl.Execute(r.conf.Project, data, logger)
 	if err := r.tmpl.Err(); err != nil {
 		return false, err
@@ -51,6 +56,10 @@ func (r *Receiver) Notify(data *alertmanager.Data, logger log.Logger) (bool, err
 	issue, retry, err := r.search(project, issueLabel, logger)
 	if err != nil {
 		return retry, err
+	}
+	if operation == "resolve" {
+		fmt.Println("Resolving ticket")
+		return r.resolve(issue.Key, logger)
 	}
 
 	if issue != nil {
@@ -228,6 +237,28 @@ func (r *Receiver) create(issue *jira.Issue, logger log.Logger) (bool, error) {
 
 	level.Debug(logger).Log("msg", "  done", "key", issue.Key, "id", issue.ID)
 	return false, nil
+}
+
+func (r *Receiver) resolve(issueKey string, logger log.Logger) (bool, error) {
+	transitions, resp, err := r.client.Issue.GetTransitions(issueKey)
+	fmt.Println("##############################My ResolveState: ", r.conf.ResolveState)
+	if err != nil {
+		return handleJiraError("Issue.GetTransitions", resp, err, logger)
+	}
+	for _, t := range transitions {
+		fmt.Println("######################################################################")
+		fmt.Println(t.Name, issueKey, t.ID)
+		if t.Name == "Done" {
+			level.Debug(logger).Log("msg", "resolve", "key", issueKey, "transitionID", t.ID)
+			resp, err = r.client.Issue.DoTransition(issueKey, t.ID)
+			if err != nil {
+				return handleJiraError("Issue.DoTransition", resp, err, logger)
+			}
+			level.Debug(logger).Log("msg", "  done")
+			return false, nil
+		}
+	}
+	return false, fmt.Errorf("JIRA state %q does not exist or no transition possible for %s", r.conf.ResolveState, issueKey)
 }
 
 func handleJiraError(api string, resp *jira.Response, err error, logger log.Logger) (bool, error) {

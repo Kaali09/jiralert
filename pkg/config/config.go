@@ -85,10 +85,11 @@ type ReceiverConfig struct {
 	Password Secret `yaml:"password" json:"password"`
 
 	// Required issue fields
-	Project     string `yaml:"project" json:"project"`
-	IssueType   string `yaml:"issue_type" json:"issue_type"`
-	Summary     string `yaml:"summary" json:"summary"`
-	ReopenState string `yaml:"reopen_state" json:"reopen_state"`
+	Project      string `yaml:"project" json:"project"`
+	IssueType    string `yaml:"issue_type" json:"issue_type"`
+	Summary      string `yaml:"summary" json:"summary"`
+	ReopenState  string `yaml:"reopen_state" json:"reopen_state"`
+	ResolveState string `yaml:"resolve_state" json:"resolve_state"`
 
 	// Optional issue fields
 	Priority          string                 `yaml:"priority" json:"priority"`

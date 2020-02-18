@@ -86,6 +86,29 @@ func main() {
 		}
 
 		// Filter out resolved alerts, not interested in them.
+		alertsResolved := data.Alerts.Resolved()
+		// dirty hack
+		if len(alertsResolved) > 0 {
+			dataResolved := data
+			dataResolved.Alerts = alertsResolved
+			r, err := notify.NewReceiver(conf, tmpl)
+			if err != nil {
+				errorHandler(w, http.StatusInternalServerError, err, conf.Name, &dataResolved, logger)
+				return
+			}
+			if retry, err := notify.JiraNotify("resolve", r, &dataResolved, logger); err != nil {
+				var status int
+				if retry {
+					status = http.StatusServiceUnavailable
+				} else {
+					status = http.StatusInternalServerError
+				}
+				errorHandler(w, status, err, conf.Name, &dataResolved, logger)
+				return
+			}
+		}
+
+		// Filter out resolved alerts, not interested in them.
 		alerts := data.Alerts.Firing()
 		if len(alerts) < len(data.Alerts) {
 			level.Warn(logger).Log("msg", "receiver should have \"send_resolved: false\" set in Alertmanager config", "receiver", conf.Name)

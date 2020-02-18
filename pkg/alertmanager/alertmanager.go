@@ -125,16 +125,6 @@ type Alert struct {
 // Alerts is a list of Alert objects.
 type Alerts []Alert
 
-// Firing returns the subset of alerts that are firing.
-func (as Alerts) Firing() []Alert {
-	return returnAlert(&as, AlertFiring)
-}
-
-// Resolved returns the subset of alerts that are firing.
-func (as Alerts) Resolved() []Alert {
-	return returnAlert(&as, AlertResolved)
-}
-
 func returnAlert(as *Alerts, alertType string) []Alert {
 	res := []Alert{}
 	for _, a := range *as {
@@ -143,4 +133,13 @@ func returnAlert(as *Alerts, alertType string) []Alert {
 		}
 	}
 	return res
+}
+
+// Firing returns the subset of alerts that are firing.
+func (as Alerts) Firing() []Alert {
+	return returnAlert(&as, AlertFiring)
+}
+
+func (as Alerts) Resolved() []Alert {
+	return returnAlert(&as, AlertResolved)
 }
